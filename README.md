@@ -12,4 +12,4 @@ Including two parts.
         
 3. It will search and display the cars' name without repeat，using the command line likes this(no options):
 
-        php bin/console cars:query
+        php bin/console cars:query   (symfony files or simple php file)  
