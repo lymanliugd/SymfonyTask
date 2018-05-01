@@ -15,11 +15,13 @@ Including two parts.
  MPG:
   15.0 - 16
   16.0 - 13
+  
 
 Origin:
   US - 254
   Japan - 79
   Europe - 73
+  
 
 Search result:
   AMC Ambassador DPL
