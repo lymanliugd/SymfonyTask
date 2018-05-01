@@ -49,6 +49,21 @@ function getValueFromArgv($str){
     return $value;
 }
 
+function increase($value, $key)
+{
+    $v = explode(',',$value);
+    if(strcmp($v[0],$key)!=0)
+    {
+        $res = $v[1]+1;
+        $res = $key.','.$res;
+        return $res;
+    }
+    else
+    {
+        return $value;
+    }
+}
+
 //read command
 if(count($argv)<2){
     echo 'Please input the argument "cars:query"'."\n";
@@ -107,28 +122,15 @@ if(empty($data)){
     echo "data error! \n";
     exit;
 }
-//start parsing data-----------------------------------------------------------------
+//atart parsing data-----------------------------------------------------------------
 $result = '';
-if(count($argv)<3){
-    $result = "Search result:\n";
-    $key = substr($argv[1],0,3);
-    $res = array();
-
-    foreach ($data as $v){
-        $res[]= $v->getFeature($key);
-    }
-    $res = array_flip($res);
-    $res = array_keys($res);
-    sort($res);
-    foreach ($res as $r){
-        $result.="  ".$r."\n";
-    }
-    var_dump($result);
-    exit;
-}
+$nameKey = 'car';
+$cars = array(); // search cars result
+$count = 0;       //number of Argv
 
 for($i=2;$i<count($argv);$i++){
     //for each $argv----------------------------
+    $count++;
     $key = strtolower(getKeyFromArgv($argv[$i]));
     $value = getValueFromArgv($argv[$i]);
     if(!$keyset->has($key)){
@@ -144,15 +146,64 @@ for($i=2;$i<count($argv);$i++){
                 $sub = floatval($d->getFeature($key)) - floatval($v);
                 if ($sub > -0.00001 && $sub < 0.00001) {
                     $num++;
+                    $carname = $d->getFeature($nameKey);
+                    if(!isset($cars[$carname])){
+                        $cars[$carname] = $key.',1';
+                    }else{
+                        $cars[$carname] = increase($cars[$carname],$key);
+                    }
                 }
-            } else {
-                if (strcmp($d->getFeature($key), $v) == 0) {
-                    $num++;
+            }
+            else if (strcmp($d->getFeature($key), $v) == 0) {
+                $num++;
+                $carname = $d->getFeature($nameKey);
+                if(!isset($cars[$carname])){
+                    $cars[$carname] = $key.',1';
+                }else{
+
+                    var_dump($cars[$carname]);
+                    var_dump($carname);
+                    var_dump($key);
+                    $cars[$carname] = increase($cars[$carname],$key);
                 }
             }
         }
         $result.="  ".$v." - ".$num."\n";
     }
+}
+
+if(count($argv)<3){
+    $result = "Search result:\n";
+    $res = array();
+
+    foreach ($this->data as $v){
+        $res[]= $v->getFeature($nameKey);
+    }
+    $res = array_flip($res);
+    $res = array_keys($res);
+    sort($res);
+    foreach ($res as $r){
+        $result.="  ".$r."\n";
+    }
+}
+else{
+    $result .= "\nSearch result:\n";
+    $res = array();
+
+    foreach ($cars as $k=>$c){
+        $n = explode(',',$c);
+        if($n[1] == $count){
+            $res[]=$k;
+        }
+    }
+    if(empty($res)){
+        $result.="  no matched\n";
+    }
+    sort($res);
+    foreach ($res as $r){
+        $result.="  ".$r."\n";
+    }
+
 }
 
 var_dump($result);
