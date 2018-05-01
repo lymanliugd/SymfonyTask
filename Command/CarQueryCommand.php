@@ -1,4 +1,3 @@
-<?php
 /**
  * Created by PhpStorm.
  * User: Administrator
@@ -17,8 +16,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class CarQueryCommand extends ContainerAwareCommand
 {
-    private  $data = array();
-    private $keyset;
+    private  $data = array(); //whole table data
+    private $keyset;          //keep original keywords value
 
     protected function configure()
     {
@@ -105,40 +104,54 @@ class CarQueryCommand extends ContainerAwareCommand
 
         //start parsing data-----------------------------------------------------
         $result='';
+        $nameKey = 'car';
+        $cars = array(); // search cars result
+        $count = 0;       //number of Argv
+
         //output options result
         foreach ($input->getOptions() as $k=>$v){
             if($v && $v!='dev') {
+                $count++;
                 $key = strtolower($k);
                 $value = explode(',',$v);               //handle multi values
                 $result.="\n".$this->keyset->getKey($key).":\n";
 
-                foreach ($value as $v) {
+                foreach ($value as $vv) {
                     $num=0;
                     foreach ($this->data as $d) {
-                        if (is_numeric($v)) {
-                            $sub = floatval($d->getFeature($key)) - floatval($v);
+                        if (is_numeric($vv)) {
+                            $sub = floatval($d->getFeature($key)) - floatval($vv);
                             if ($sub > -0.00001 && $sub < 0.00001) {
                                 $num++;
+                                $carname = $d->getFeature($nameKey);
+                                if(!isset($cars[$carname])){
+                                    $cars[$carname] = $key.',1';
+                                }else{
+                                    $cars[$carname] = $this->increase($cars[$carname],$key);
+                                }
                             }
-                        } else {
-                            if (strcmp($d->getFeature($key), $v) == 0) {
-                                $num++;
+                        } else if (strcmp($d->getFeature($key), $vv) == 0) {
+                            $num++;
+                            $carname = $d->getFeature($nameKey);
+                            if(!isset($cars[$carname])){
+                                $cars[$carname] = $key.',1';
+                            }else{
+                                $cars[$carname] = $this->increase($cars[$carname],$key);
                             }
                         }
                     }
-                    $result.="  ".$v." - ".$num."\n";
+                    $result.="  ".$vv." - ".$num."\n";
                 }
             }
         }
 
-        //without options output cars' name
+        //output cars' name with or without options
         if(empty($result)){
             $result = "Search result:\n";
-            $key = 'car';
             $res = array();
 
             foreach ($this->data as $v){
-                $res[]= $v->getFeature($key);
+                $res[]= $v->getFeature($nameKey);
             }
             $res = array_flip($res);
             $res = array_keys($res);
@@ -146,6 +159,26 @@ class CarQueryCommand extends ContainerAwareCommand
             foreach ($res as $r){
                 $result.="  ".$r."\n";
             }
+        }
+        else{
+            $result .= "\nSearch result:\n";
+            $res = array();
+
+            foreach ($cars as $k=>$c){
+                $n = explode(',',$c);
+                if($n[1] == $count){
+                    $res[]=$k;
+                }
+            }
+
+            if(empty($res)){
+                $result.="  no matched\n";
+            }
+            sort($res);
+            foreach ($res as $r){
+                $result.="  ".$r."\n";
+            }
+
         }
 
         $output->writeln($result);
@@ -178,6 +211,21 @@ class CarQueryCommand extends ContainerAwareCommand
                 $car->setFeature(strtolower($title[$k]),$v);
             }
             $this->data[] = $car;
+        }
+    }
+
+    private function increase($value, $key)
+    {
+        $v = explode(',',$value);
+        if(strcmp($v[0],$key)!=0)
+        {
+            $res = $v[1]+1;
+            $res = $key.','.$res;
+            return $res;
+        }
+        else
+        {
+            return $value;
         }
     }
 }
