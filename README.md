@@ -9,3 +9,7 @@ Including two parts.
 2.A simple php file can be executed in Terminal such as PHP CLI, command line likes this:
 
         php console.php cars:query [--mpg=n,m,k] [--origin=n,m,k] ...
+        
+3. It will search and display the cars' name without repeat，using the command line likes this(no options):
+
+        php bin/console cars:query
