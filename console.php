@@ -107,7 +107,7 @@ if(empty($data)){
     echo "data error! \n";
     exit;
 }
-//atart parsing data-----------------------------------------------------------------
+//start parsing data-----------------------------------------------------------------
 $result = '';
 if(count($argv)<3){
     $result = "Search result:\n";
